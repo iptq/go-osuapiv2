@@ -14,7 +14,10 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-const BASE_URL = "https://osu.ppy.sh/api/v2"
+const (
+	BASE_URL  = "https://osu.ppy.sh/api/v2"
+	TOKEN_URL = "https://osu.ppy.sh/oauth/token"
+)
 
 type Api struct {
 	httpClient *http.Client
@@ -71,7 +74,7 @@ func (api *Api) Token() (token string, err error) {
 	)
 
 	resp, err := http.Post(
-		"https://osu.ppy.sh/oauth/token",
+		TOKEN_URL,
 		"application/x-www-form-urlencoded",
 		strings.NewReader(data),
 	)

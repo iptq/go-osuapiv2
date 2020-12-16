@@ -19,6 +19,7 @@ type Beatmapset struct {
 	Covers      BeatmapCovers `json:"covers"`
 	Beatmaps    []Beatmap     `json:"beatmaps,omitempty"`
 	LastUpdated string        `json:"last_updated,omitempty"`
+	RankedDate  string        `json:"ranked_date,omitempty"`
 }
 
 type Beatmap struct {
