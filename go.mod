@@ -1,4 +1,4 @@
-module osuapiv2
+module git.mzhang.io/osu/go-osuapiv2
 
 go 1.15
 
