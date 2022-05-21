@@ -1,13 +1,13 @@
 package osuapiv2
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -57,7 +57,15 @@ func New(config *Config) *Api {
 	}
 }
 
-func (api *Api) Token() (token string, err error) {
+type tokenObj struct {
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	Code         string `json:"code"`
+	GrantType    string `json:"grant_type"`
+	RedirectUri  string `json:"redirect_uri"`
+}
+
+func (api *Api) Token(code string, redirectUri string) (token string, err error) {
 	if time.Now().Before(api.expires) {
 		token = api.token
 		return
@@ -73,17 +81,9 @@ func (api *Api) Token() (token string, err error) {
 	api.tokenLock.Lock()
 	api.isFetchingToken = true
 
-	data := fmt.Sprintf(
-		"client_id=%s&client_secret=%s&grant_type=client_credentials&scope=public",
-		api.config.ClientId,
-		api.config.ClientSecret,
-	)
-
-	resp, err := http.Post(
-		TOKEN_URL,
-		"application/x-www-form-urlencoded",
-		strings.NewReader(data),
-	)
+	const grant_type = "authorization_code"
+	req, err := json.Marshal(tokenObj{api.config.ClientId, api.config.ClientSecret, code, grant_type, redirectUri})
+	resp, err := http.Post(TOKEN_URL, "application/json", bytes.NewBuffer(req))
 	if err != nil {
 		return
 	}
