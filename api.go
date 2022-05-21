@@ -35,6 +35,12 @@ type Config struct {
 	ClientSecret string
 }
 
+type OsuToken struct {
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+	AccessToken string `json:"access_token"`
+}
+
 func New(config *Config) *Api {
 	client := &http.Client{
 		Timeout: 9 * time.Second,
@@ -161,10 +167,4 @@ func (api *Api) Request(action string, url string, result interface{}) (err erro
 	}
 
 	return
-}
-
-type OsuToken struct {
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
-	AccessToken string `json:"access_token"`
 }
