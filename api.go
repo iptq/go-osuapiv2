@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -127,6 +128,8 @@ func (api *Api) Token() (token string, err error) {
 	return
 }
 
+var ErrorUnauthorized error = errors.New("Token is invalid")
+
 func (api *Api) Request0(action string, url string) (resp *http.Response, err error) {
 	err = api.lock.Acquire(context.TODO(), 1)
 	if err != nil {
@@ -150,7 +153,12 @@ func (api *Api) Request0(action string, url string) (resp *http.Response, err er
 		return
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = ErrorUnauthorized
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
 		var respBody []byte
 		respBody, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
