@@ -139,7 +139,7 @@ func (api *Api) Request0(action string, url string) (resp *http.Response, err er
 	apiUrl := BASE_URL + url
 	req, err := http.NewRequest(action, apiUrl, nil)
 
-	token, err := api.Token("", "")
+	token, err := api.Token()
 	if err != nil {
 		return
 	}
