@@ -1,4 +1,4 @@
-module github.com/mertdogan12/go-osuapiv2
+module github.com/iptq/go-osuapiv2
 
 go 1.15
 
