@@ -33,12 +33,15 @@ type Api struct {
 type Config struct {
 	ClientId     string
 	ClientSecret string
+	Code         string
+	RedirectUri  string
 }
 
 type OsuToken struct {
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
-	AccessToken string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefrechToken string `json:"refrech_token"`
 }
 
 func New(config *Config) *Api {
@@ -49,11 +52,31 @@ func New(config *Config) *Api {
 	// want to cap at around 1000 requests a minute, OSU cap is 1200
 	lock := semaphore.NewWeighted(1000)
 
-	return &Api{
+	api := &Api{
 		httpClient: client,
 		lock:       lock,
 		expires:    time.Now(),
 		config:     config,
+	}
+
+	api.tokenLock.Unlock()
+
+	return api
+}
+
+func NewWithToken(token string) *Api {
+	client := &http.Client{
+		Timeout: 9 * time.Second,
+	}
+
+	lock := semaphore.NewWeighted(1000)
+
+	return &Api{
+		httpClient: client,
+		lock:       lock,
+		token:      token,
+
+		isFetchingToken: true,
 	}
 }
 
@@ -65,7 +88,7 @@ type tokenObj struct {
 	RedirectUri  string `json:"redirect_uri"`
 }
 
-func (api *Api) Token(code string, redirectUri string) (token string, err error) {
+func (api *Api) Token() (token string, err error) {
 	if time.Now().Before(api.expires) {
 		token = api.token
 		return
@@ -82,7 +105,7 @@ func (api *Api) Token(code string, redirectUri string) (token string, err error)
 	api.isFetchingToken = true
 
 	const grant_type = "authorization_code"
-	req, err := json.Marshal(tokenObj{api.config.ClientId, api.config.ClientSecret, code, grant_type, redirectUri})
+	req, err := json.Marshal(tokenObj{api.config.ClientId, api.config.ClientSecret, api.config.Code, grant_type, api.config.RedirectUri})
 	resp, err := http.Post(TOKEN_URL, "application/json", bytes.NewBuffer(req))
 	if err != nil {
 		return
