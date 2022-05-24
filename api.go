@@ -52,16 +52,12 @@ func New(config *Config) *Api {
 	// want to cap at around 1000 requests a minute, OSU cap is 1200
 	lock := semaphore.NewWeighted(1000)
 
-	api := &Api{
+	return &Api{
 		httpClient: client,
 		lock:       lock,
 		expires:    time.Now(),
 		config:     config,
 	}
-
-	api.tokenLock.Unlock()
-
-	return api
 }
 
 func NewWithToken(token string) *Api {
